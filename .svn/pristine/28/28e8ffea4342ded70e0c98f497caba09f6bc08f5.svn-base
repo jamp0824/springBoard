@@ -1,0 +1,90 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script
+	src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<title>Insert title here</title>
+</head>
+
+
+<script>
+	//수정 버튼
+	$(document).ready(function(){
+		var formObj = $("form[name='readForm']");
+		$(".update_btn").on("click", function(){
+			formObj.attr("action","./freeBoardUpdate.ino");
+			formObj.attr("method", "post");
+			formObj.submit();
+		});
+		//삭제 버튼
+		$(".delete_btn").on("click", function(){
+			if(confirm("삭제하시겠습니까?")){
+				formObj.attr("action","./freeBoardDelete.ino");
+				formObj.attr("method", "post");
+				formObj.submit();
+			}
+		});
+		//취소 버튼
+		$(".list_btn").on("click", function(){
+			event.preventDefault();
+			location.href="./main.ino?page=${scri.page}"
+				+"&perPageNum=${scri.perPageNum}"
+				+"&searchType=${scri.searchType}&keyword=${scri.keyword}";
+		});
+	});
+	</script>
+<body>
+
+	<div>
+		<h1>자유게시판</h1>
+	</div>
+	<div style="width: 650px;" align="right">
+		<a href="./main.ino">리스트로</a>
+	</div>
+	<hr style="width: 600px">
+
+	<!-- <form name="form1" method="post"> -->
+	<form name="readForm" role="form" method="post">
+	<input type="hidden" id="num" name="num" value="${freeBoardDto.num}" />
+	<input type="hidden" id="page" name="page" value="${scri.page}" />
+	<input type="hidden" id="perPageNum" name="perPageNum" value="${scri.perPageNum}" />
+	<input type="hidden" id="searchType" name="searchType" value="${scri.searchType}" />
+	<input type="hidden" id="keyword" name="keyword" value="${scri.keyword}" />
+	<div style="width: 150px; float: left;">이름 :</div>
+	<div style="width: 500px; float: left;" align="left">
+		<input type="text" name="name" value="${freeBoardDto.name }" readonly />
+	</div>
+
+	<div style="width: 150px; float: left;">제목 :</div>
+	<div style="width: 500px; float: left;" align="left">
+		<input type="text" name="title" value="${freeBoardDto.title }" />
+	</div>
+
+	<div style="width: 150px; float: left;">작성날자</div>
+	<div style="width: 500px; float: left;" align="left">
+		<input type="text" name="regdate" fmt:formatDate pattern="yyyy-MM-dd" value="${freeBoardDto.regdate }" />
+	</div>
+
+	<div style="width: 150px; float: left;">내용 :</div>
+	<div style="width: 500px; float: left;" align="left">
+		<textarea name="content" rows="25" cols="65">${freeBoardDto.content }</textarea>
+	</div>
+	<div align="right">
+
+		<input type="submit" value="수정" class="update_btn">
+		<input type="submit" value="삭제" class="delete_btn">
+		<input type="submit" value="취소" class="list_btn">
+		&nbsp;&nbsp;&nbsp;
+	</div>
+	</form>
+
+
+
+</body>
+
+</html>

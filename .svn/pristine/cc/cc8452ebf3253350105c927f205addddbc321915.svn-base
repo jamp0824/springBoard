@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ino.web.freeBoard.mapper.FreeBoardMapper">
+	<update id="freeBoardUpdate" parameterType="FreeBoardDto">
+		UPDATE FREEBOARD
+		SET
+		NAME =#{name},
+		TITLE =#{title},
+		CONTENT =#{content}
+		WHERE NUM=#{num}
+	</update>
+	<delete id="freeBoardDelete" parameterType="int">
+		DELETE
+		FROM FREEBOARD
+		WHERE NUM=#{num}
+	</delete>
+	<!-- 페이징 처리 -->
+	<!-- <select id="ListPage" resultType="freeBoardDto" parameterType="Criteria"> resultType="ino.web.board.dto.BoardDto"
+
+		SELECT NUM,
+		TITLE,
+		NAME,
+		CONTENT,
+		TO_CHAR(REGDATE,'YYYY-MM-DD')
+		REGDATE
+		FROM (
+		SELECT NUM,
+		TITLE,
+		NAME,
+		CONTENT,
+		REGDATE,
+		ROW_NUMBER() OVER(ORDER BY NUM DESC) AS RNUM
+		FROM
+		FREEBOARD
+		WHERE 1=1
+		<include refid="search"></include>
+		) MP
+		WHERE RNUM BETWEEN #{rowStart} AND #{rowEnd}
+		ORDER BY NUM DESC;
+
+	</select> -->
+	<!--수정된 게시물 목록 업데이트 -->
+	<!-- <select id="selectBoardList" resultType="hashmap" parameterType="hashmap"> -->
+	 <select id="selectBoardList" resultType="FreeBoardDto" parameterType="Criteria"> <!-- resultType="ino.web.board.dto.BoardDto" -->
+
+        SELECT
+        NUM,
+        TITLE,
+		NAME,
+		CONTENT,
+		REGDATE
+        FROM
+        (SELECT
+		NUM,
+		TITLE,
+		NAME,
+		CONTENT,
+		REGDATE,
+        ROW_NUMBER() OVER(ORDER BY NUM DESC) AS RNUM
+        FROM FREEBOARD
+        	) MP
+		WHERE RNUM BETWEEN #{pageStart} AND #{perPageNum}
+		ORDER BY NUM DESC
+
+</select>
+	<!-- 총 게시글 갯수 구하기 (totalCount) -->
+	<!-- 결과는 int로 리턴되어야 한다. -->
+	<select id="countBoardList" resultType="Integer">
+
+        SELECT
+            count(*)
+        AS totalCount
+        from
+            FREEBOARD
+        WHERE NUM >0
+
+
+</select>
+<!-- count 조회한 결과의 갯수를 뿌려주는 쿼리이다. -->
+<!-- del_chk 총 게시글 중에 삭제된 것 빼야 한다. -->
+	<!-- 총게시글 갯수 -->
+	<select id="listCount" resultType="int" parameterType="SearchCriteria">
+		SELECT COUNT(NUM)
+		FROM FREEBOARD
+		WHERE 1=1
+		<include refid="search"></include>
+		AND NUM > 0
+	</select>
+	<!-- 페이징 조회를 위해 LIMIT을 이용해서 원래의 목록 조회 쿼리를 수정했다 -->
+	<!-- 검색기능 -->
+	<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 't'.toString()">AND TITLE LIKE '%' || #{keyword} || '%'</if>
+			<if test="searchType == 'c'.toString()">AND CONTENT LIKE '%' || #{keyword} || '%'</if>
+			<if test="searchType == 'w'.toString()">AND WRITER LIKE '%' || #{keyword} || '%'</if>
+			<if test="searchType == 'tc'.toString()">AND (TITLE LIKE '%' || #{keyword} || '%') or (CONTENT
+				LIKE '%' || #{keyword} || '%')</if>
+		</if>
+	</sql>
+	<!-- 게시판 작성 확인값 넘겨주기 -->
+	<insert id="freeBoardInsertPro" parameterType="freeBoardDto">
+		INSERT INTO FREEBOARD(NUM, TITLE, NAME, REGDATE, CONTENT)
+		VALUES(
+		FREEBOARDNUM_SEQ.NEXTVAL, #{title}, #{name}, SYSDATE, #{content})
+		<selectKey resultType="int" keyProperty="num" order="AFTER">
+			select
+			freeboardnum_seq.currval from dual
+		</selectKey>
+	</insert>
+	<!-- 넘버값으로 전체 값 확인 -->
+	<select id="freeBoardDetailByNum" resultType="freeBoardDto"
+		parameterType="int">
+		SELECT NUM, TITLE, NAME, TO_CHAR(REGDATE,'YYYY/MM/DD')
+		REGDATE, CONTENT FROM FREEBOARD
+		WHERE NUM=#{num}
+	</select>
+</mapper>

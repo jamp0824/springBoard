@@ -1,0 +1,73 @@
+package ino.web.freeBoard.service;
+
+import java.util.List;
+import java.util.Map;
+
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import ino.web.freeBoard.dto.Criteria;
+import ino.web.freeBoard.dto.FreeBoardDto;
+import ino.web.freeBoard.dto.SearchCriteria;
+
+@Service
+public class FreeBoardService {
+
+	@Autowired
+	private SqlSessionTemplate sqlSessionTemplate;
+
+	// 게시물 목록 자세히
+	public FreeBoardDto getDetailByNum(int num) {
+		return sqlSessionTemplate.selectOne("freeBoardDetailByNum", num);
+	}
+
+	// 게시물 수정
+	public void freeBoardUpdate(FreeBoardDto dto) {
+		sqlSessionTemplate.update("freeBoardUpdate", dto);
+	}
+
+	// 게시물 삭제
+	public void freeBoardDelete(int num) {
+		System.out.println("삭제시 받는 num값은"+num);
+		sqlSessionTemplate.delete("freeBoardDelete", num);
+		System.out.println("삭제되었습니다");
+	}
+
+	// 게시물 총 갯수
+	public int listCount(SearchCriteria scri) {
+		return sqlSessionTemplate.selectOne("listCount", scri);
+	}
+
+	// 게시물 목록 조회
+	public List list(SearchCriteria scri) {
+		return sqlSessionTemplate.selectList("ListPage", scri);
+	}
+	// 수정된 게시글 목록 조회
+	public List<Map<String, Object>> selectBoardList(Criteria cri) {
+		return sqlSessionTemplate.selectList("selectBoardList", cri);
+	}
+	//수정된 총 게시글 갯수 구하기
+	public int countBoardList(){
+	    return sqlSessionTemplate.selectOne("countBoardList");
+	}
+
+	
+	
+
+	// 게시물 조회
+	public List freeBoardList() {
+		return sqlSessionTemplate.selectList("freeBoardGetList");
+	}
+
+	// 게시물 조회2
+	public List freeBoardList2() {
+		return sqlSessionTemplate.selectList("freeBoardGetList2");
+	}
+
+	// 게시물 내용 삽입
+	public void freeBoardInsertPro(FreeBoardDto dto) {
+		sqlSessionTemplate.insert("freeBoardInsertPro", dto);
+	}
+
+}

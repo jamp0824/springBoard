@@ -1,0 +1,83 @@
+package ino.web.freeBoard.service;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import ino.web.freeBoard.dto.FreeBoardDto;
+import ino.web.freeBoard.dto.SearchCriteria;
+import kr.co.util.FileUtils;
+
+@Service
+public class FreeBoardService {
+	@Resource(name="fileUtils")
+	private FileUtils fileUtils;
+
+	@Autowired
+	private SqlSessionTemplate sqlSessionTemplate;
+
+	// 게시물 목록 자세히
+	public FreeBoardDto getDetailByNum(int num) {
+
+		return sqlSessionTemplate.selectOne("freeBoardDetailByNum", num);
+	}
+
+	// 게시물 수정
+	public void freeBoardUpdate(FreeBoardDto dto) {
+		System.out.println("service에서 실행되는 dto.getContent"+dto.getContent());
+		sqlSessionTemplate.update("freeBoardUpdate", dto);
+	}
+
+	// 게시물 삭제
+	public void freeBoardDelete(int num) {
+		sqlSessionTemplate.delete("freeBoardDelete", num);
+	}
+
+	// 게시물 총 갯수
+	public int listCount(SearchCriteria scri) {
+		return sqlSessionTemplate.selectOne("listCount", scri);
+	}
+
+	// 게시물 목록 조회
+	public List list(SearchCriteria scri) {
+		return sqlSessionTemplate.selectList("ListPage", scri);
+	}
+	// 수정된 게시글 목록 조회
+	public List<Map<String, Object>> selectBoardList(SearchCriteria scri) {
+
+		return sqlSessionTemplate.selectList("selectBoardList", scri);
+	}
+	//수정된 총 게시글 갯수 구하기
+	public int countBoardList(SearchCriteria scri){
+	    return sqlSessionTemplate.selectOne("countBoardList",scri);
+	}
+
+
+
+
+	// 게시물 조회
+	public List freeBoardList() {
+		return sqlSessionTemplate.selectList("freeBoardGetList");
+	}
+
+	// 게시물 조회2
+	public List freeBoardList2() {
+		return sqlSessionTemplate.selectList("freeBoardGetList2");
+	}
+
+	// 게시물 내용 삽입
+	public void freeBoardInsertPro(FreeBoardDto dto) {
+		sqlSessionTemplate.insert("freeBoardInsertPro", dto);
+	}
+	//파일 첨부
+	public void insertFile(Map<String, Object> map) {
+		sqlSessionTemplate.insert("insertFile", map);
+	}
+
+}

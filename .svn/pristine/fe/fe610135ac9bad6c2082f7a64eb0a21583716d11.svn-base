@@ -1,0 +1,117 @@
+package ino.web.freeBoard.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import ino.web.freeBoard.dto.FreeBoardDto;
+import ino.web.freeBoard.dto.PageMaker;
+import ino.web.freeBoard.dto.SearchCriteria;
+import ino.web.freeBoard.service.FreeBoardService;
+import kr.co.util.FileUtils;
+
+@Controller
+public class FreeBoardController {
+	@Resource(name="fileUtils")
+	private FileUtils fileUtils;
+	@Autowired
+	private FreeBoardService freeBoardService;
+
+	// 게시물 메인페이지
+	@RequestMapping("/main.ino")
+	public ModelAndView main(HttpServletRequest request,SearchCriteria scri/* SearchCriteria scri */) {
+		// 현재 페이지 번호와 페이지당 보여줄 게시글 수가 담긴 Criteria 객체를 사용한다.
+		ModelAndView mav = new ModelAndView("/main.ino");
+
+		List<Map<String, Object>> list = freeBoardService.selectBoardList(scri);
+		mav.addObject("list", list);
+
+		PageMaker pageMaker = new PageMaker();
+		//PageMaker()객체를 생성한다.
+		/* pageMaker.setCri(scri); */
+		pageMaker.setCri(scri);
+		pageMaker.setTotalCount(freeBoardService.countBoardList(scri));
+		mav.addObject("pageMaker", pageMaker);
+		mav.addObject("scri",scri);
+		mav.setViewName("boardMain");
+
+		return mav;
+	}
+
+	// 게시물 입력
+	@RequestMapping("/freeBoardInsert.ino")
+	public String freeBoardInsert() {
+		return "freeBoardInsert";
+	}
+
+	// 게시물 입력 보내기
+	@RequestMapping("/freeBoardInsertPro.ino")
+	public String freeBoardInsertPro(HttpServletRequest request, FreeBoardDto dto,MultipartHttpServletRequest mpRequest) throws Exception {
+		ModelAndView mav = new ModelAndView();
+		List<Map<String,Object>>list=fileUtils.parseInsertFileInfo(dto,mpRequest);
+		int size=list.size();
+		for(int i=0;i<size;i++){
+			freeBoardService.insertFile(list.get(i));
+		}
+		freeBoardService.freeBoardInsertPro(dto);
+
+		System.out.println(dto.getNum());
+
+		return "redirect:freeBoardDetail.ino?num=" + dto.getNum();
+		// return "redirect:main.ino";
+		// return "redirect:freeBoardDetail.ino?num="+dto.getNum();
+	}
+
+	// 게시물 자세히(수정,삭제 뷰페이지)
+	@RequestMapping("/freeBoardDetail.ino")
+	public ModelAndView freeBoardDetail(HttpServletRequest request,SearchCriteria scri) {
+		ModelAndView mav = new ModelAndView();
+		int num = Integer.parseInt(request.getParameter("num"));
+		FreeBoardDto dto = freeBoardService.getDetailByNum(num);
+		mav.addObject("scri",scri);
+		mav.addObject("freeBoardDto",dto);
+		mav.setViewName("freeBoardDetail");
+		System.out.println(scri.getPage());
+		System.out.println(scri.getPerPageNum());
+		return mav;
+	}
+
+	// 게시판 수정 보내기
+	@RequestMapping(value = "/freeBoardUpdate.ino", method=RequestMethod.POST)
+	public String freeBoardUpdate(FreeBoardDto dto, HttpServletRequest request, @ModelAttribute("scri")SearchCriteria scri,RedirectAttributes rttr) {
+		System.out.println(scri.getPage());
+		System.out.println(scri.getPerPageNum());
+		freeBoardService.freeBoardUpdate(dto);
+		rttr.addAttribute("page", scri.getPage());
+		rttr.addAttribute("perPageNum", scri.getPerPageNum());
+		rttr.addAttribute("searchType", scri.getSearchType());
+		rttr.addAttribute("keyword", scri.getKeyword());
+		return "redirect:/main.ino";
+	}
+
+	// 게시판 삭제
+	@RequestMapping(value = "/freeBoardDelete.ino")
+	public String freeBodardDelete(int num, HttpServletRequest request,@ModelAttribute("scri")SearchCriteria scri,RedirectAttributes rttr) throws Exception {
+		FreeBoardDto dto = new FreeBoardDto();
+		freeBoardService.freeBoardDelete(num);
+
+		rttr.addAttribute("page", scri.getPage());
+		rttr.addAttribute("perPageNum", scri.getPerPageNum());
+		rttr.addAttribute("searchType", scri.getSearchType());
+		rttr.addAttribute("keyword", scri.getKeyword());
+		return "redirect:./main.ino";
+	}
+
+
+}
